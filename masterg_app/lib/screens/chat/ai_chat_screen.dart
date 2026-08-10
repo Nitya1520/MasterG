@@ -154,7 +154,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
                         backgroundColor: theme.colorScheme.surface,
                         surfaceTintColor: Colors.transparent,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        side: BorderSide(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+                        side: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
                         label: Text(
                           _suggestions[index],
                           style: TextStyle(
@@ -176,7 +176,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
                 border: Border(
-                  top: BorderSide(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+                  top: BorderSide(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
                 ),
               ),
               child: Row(
@@ -185,7 +185,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
                   Container(
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     ),
                     child: IconButton(
                       icon: Icon(Icons.mic, color: theme.colorScheme.primary),
@@ -257,12 +257,12 @@ class _AIChatScreenState extends State<AIChatScreen> {
           ),
           border: message.isUser
               ? null
-              : Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+              : Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
           boxShadow: [
             BoxShadow(
               color: message.isUser
-                  ? const Color(0xFF6366F1).withOpacity(0.12)
-                  : (isDark ? Colors.black.withOpacity(0.1) : Colors.black.withOpacity(0.015)),
+                  ? const Color(0xFF6366F1).withValues(alpha: 0.12)
+                  : (isDark ? Colors.black.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.015)),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -295,7 +295,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
             bottomLeft: Radius.circular(4),
             bottomRight: Radius.circular(20),
           ),
-          border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+          border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -305,7 +305,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
               width: 6,
               height: 6,
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.6),
+                color: theme.colorScheme.primary.withValues(alpha: 0.6),
                 shape: BoxShape.circle,
               ),
             );

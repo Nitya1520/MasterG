@@ -41,7 +41,7 @@ SEED_VOCABULARY = {
             "pronunciation": "dih-lahyt-fuhl",
             "gujarati_meaning": "આનંદદાયક",
             "english_meaning": "Causing great pleasure or delight.",
-            "sentences": [
+            "sentgences": [
                 "We had a delightful evening with our friends.",
                 "This garden is a delightful place to read.",
                 "The cake was absolutely delightful.",

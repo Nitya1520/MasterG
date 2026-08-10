@@ -12,7 +12,7 @@ def get_tokens_for_user(user):
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
-
+ 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_view(request):

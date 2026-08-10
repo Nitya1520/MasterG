@@ -117,7 +117,7 @@ class _GrammarQuizScreenState extends State<GrammarQuizScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF6366F1).withOpacity(0.1),
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -182,7 +182,7 @@ class _GrammarQuizScreenState extends State<GrammarQuizScreen> {
                   height: 8,
                   child: LinearProgressIndicator(
                     value: (_questionIndex + 1) / _questions.length,
-                    backgroundColor: theme.colorScheme.outlineVariant.withOpacity(0.4),
+                    backgroundColor: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
                     valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
                   ),
                 ),
@@ -212,7 +212,7 @@ class _GrammarQuizScreenState extends State<GrammarQuizScreen> {
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surface,
                         borderRadius: AppTheme.cardBorderRadius,
-                        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+                        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
                         boxShadow: AppTheme.getSoftShadow(context),
                       ),
                       child: Text(
@@ -235,16 +235,16 @@ class _GrammarQuizScreenState extends State<GrammarQuizScreen> {
 
                       if (isSelected) {
                         itemBorderColor = theme.colorScheme.primary;
-                        itemBgColor = theme.colorScheme.primary.withOpacity(0.06);
+                        itemBgColor = theme.colorScheme.primary.withValues(alpha: 0.06);
                       }
 
                       if (_isAnswerSubmitted) {
                         if (index == question.correctIndex) {
                           itemBorderColor = const Color(0xFF10B981);
-                          itemBgColor = const Color(0xFF10B981).withOpacity(0.08);
+                          itemBgColor = const Color(0xFF10B981).withValues(alpha: 0.08);
                         } else if (isSelected) {
                           itemBorderColor = const Color(0xFFEF4444);
-                          itemBgColor = const Color(0xFFEF4444).withOpacity(0.08);
+                          itemBgColor = const Color(0xFFEF4444).withValues(alpha: 0.08);
                         }
                       }
 
@@ -276,14 +276,14 @@ class _GrammarQuizScreenState extends State<GrammarQuizScreen> {
                                     height: 28,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outlineVariant.withOpacity(0.4),
+                                      color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
                                     ),
                                     child: Center(
                                       child: Text(
                                         String.fromCharCode(65 + index),
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
-                                          color: isSelected ? Colors.white : theme.colorScheme.onSurface.withOpacity(0.8),
+                                          color: isSelected ? Colors.white : theme.colorScheme.onSurface.withValues(alpha: 0.8),
                                           fontSize: 13,
                                         ),
                                       ),
@@ -335,7 +335,7 @@ class _GrammarQuizScreenState extends State<GrammarQuizScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 10,
               offset: const Offset(0, -4),
             )
@@ -391,7 +391,7 @@ class _GrammarQuizScreenState extends State<GrammarQuizScreen> {
           Text(
             question.explanation,
             style: TextStyle(
-              color: textColor.withOpacity(0.9),
+              color: textColor.withValues(alpha: 0.9),
               fontSize: 13,
               height: 1.4,
             ),

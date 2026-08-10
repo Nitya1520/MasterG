@@ -70,7 +70,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> with SingleTi
           ),
           boxShadow: [
             BoxShadow(
-              color: isDark ? Colors.black.withOpacity(0.4) : Colors.blue.withOpacity(0.06),
+              color: isDark ? Colors.black.withValues(alpha: 0.4) : Colors.blue.withValues(alpha: 0.06),
               blurRadius: 20,
               offset: const Offset(0, -4),
             ),
@@ -83,9 +83,9 @@ class _MainNavigationShellState extends State<MainNavigationShell> with SingleTi
           ),
           child: NavigationBarTheme(
             data: NavigationBarThemeData(
-              indicatorColor: theme.colorScheme.primary.withOpacity(0.12),
-              labelTextStyle: MaterialStateProperty.resolveWith((states) {
-                if (states.contains(MaterialState.selected)) {
+              indicatorColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+              labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
                   return TextStyle(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
@@ -98,8 +98,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> with SingleTi
                   fontSize: 12,
                 );
               }),
-              iconTheme: MaterialStateProperty.resolveWith((states) {
-                if (states.contains(MaterialState.selected)) {
+              iconTheme: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.selected)) {
                   return IconThemeData(
                     color: theme.colorScheme.primary,
                     size: 26,

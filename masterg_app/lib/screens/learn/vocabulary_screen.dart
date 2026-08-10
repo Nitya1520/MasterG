@@ -106,7 +106,7 @@ class _VocabularyScreenState extends State<VocabularyScreen> with SingleTickerPr
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.12),
+                  color: Colors.amber.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Row(
@@ -185,7 +185,7 @@ class _VocabularyScreenState extends State<VocabularyScreen> with SingleTickerPr
                   height: 8,
                   child: LinearProgressIndicator(
                     value: (_currentIndex + 1) / words.length,
-                    backgroundColor: theme.colorScheme.outlineVariant.withOpacity(0.4),
+                    backgroundColor: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
                     valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
                   ),
                 ),
@@ -282,7 +282,7 @@ class _VocabularyScreenState extends State<VocabularyScreen> with SingleTickerPr
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: AppTheme.cardBorderRadius,
-        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5), width: 1.5),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5), width: 1.5),
         boxShadow: AppTheme.getCardShadow(context),
       ),
       child: Stack(
@@ -296,7 +296,7 @@ class _VocabularyScreenState extends State<VocabularyScreen> with SingleTickerPr
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -344,7 +344,7 @@ class _VocabularyScreenState extends State<VocabularyScreen> with SingleTickerPr
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: AppTheme.cardBorderRadius,
-        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5), width: 1.5),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5), width: 1.5),
         boxShadow: AppTheme.getCardShadow(context),
       ),
       child: Padding(
@@ -406,7 +406,7 @@ class _VocabularyScreenState extends State<VocabularyScreen> with SingleTickerPr
               style: theme.textTheme.bodyLarge?.copyWith(
                 fontSize: 14,
                 fontStyle: FontStyle.italic,
-                color: theme.colorScheme.onBackground.withOpacity(0.8),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
               ),
             ),
           ],

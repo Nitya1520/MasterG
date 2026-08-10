@@ -106,7 +106,7 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> with Si
                 decoration: BoxDecoration(
                   color: theme.colorScheme.surface,
                   borderRadius: AppTheme.cardBorderRadius,
-                  border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+                  border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
                   boxShadow: AppTheme.getSoftShadow(context),
                 ),
                 child: Column(
@@ -115,7 +115,7 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> with Si
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.12),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -196,7 +196,7 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> with Si
                       gradient: _isRecording ? AppTheme.flameGradient : AppTheme.primaryGradient,
                       boxShadow: [
                         BoxShadow(
-                          color: (_isRecording ? Colors.orange : theme.colorScheme.primary).withOpacity(0.35),
+                          color: (_isRecording ? Colors.orange : theme.colorScheme.primary).withValues(alpha: 0.35),
                           blurRadius: _isRecording ? 24 : 14,
                           spreadRadius: _isRecording ? 6 : 1,
                         ),
@@ -288,7 +288,7 @@ class _SpeakingPracticeScreenState extends State<SpeakingPracticeScreen> with Si
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFF137333).withOpacity(0.1),
+              color: const Color(0xFF137333).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Row(
@@ -325,7 +325,7 @@ class WaveformPainter extends CustomPainter {
     if (multiplier == 0) {
       // Draw flat line
       final paint = Paint()
-        ..color = color.withOpacity(0.3)
+        ..color = color.withValues(alpha: 0.3)
         ..strokeWidth = 3
         ..style = PaintingStyle.stroke;
       canvas.drawLine(
@@ -337,12 +337,12 @@ class WaveformPainter extends CustomPainter {
     }
 
     final paint1 = Paint()
-      ..color = color.withOpacity(0.7)
+      ..color = color.withValues(alpha: 0.7)
       ..strokeWidth = 4
       ..style = PaintingStyle.stroke;
 
     final paint2 = Paint()
-      ..color = color.withOpacity(0.35)
+      ..color = color.withValues(alpha: 0.35)
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke;
 

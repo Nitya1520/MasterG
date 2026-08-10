@@ -94,7 +94,7 @@ class ProgressScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: AppTheme.cardBorderRadius,
-        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
         boxShadow: AppTheme.getSoftShadow(context),
       ),
       child: Column(
@@ -159,7 +159,7 @@ class ProgressScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -178,7 +178,7 @@ class ProgressScreen extends StatelessWidget {
               height: 6,
               child: LinearProgressIndicator(
                 value: percentage,
-                backgroundColor: color.withOpacity(0.1),
+                backgroundColor: color.withValues(alpha: 0.1),
                 valueColor: AlwaysStoppedAnimation<Color>(color),
               ),
             ),
@@ -219,7 +219,7 @@ class WeeklyActivityPainter extends CustomPainter {
       );
 
       paint.shader = LinearGradient(
-        colors: [color.withOpacity(0.8), secondaryColor.withOpacity(0.9)],
+        colors: [color.withValues(alpha: 0.8), secondaryColor.withValues(alpha: 0.9)],
         begin: Alignment.bottomCenter,
         end: Alignment.topCenter,
       ).createShader(Rect.fromLTWH(x, y, barWidth, barHeight));
@@ -288,7 +288,7 @@ class VocabularyGrowthPainter extends CustomPainter {
     fillPath.close();
 
     fillPaint.shader = LinearGradient(
-      colors: [color.withOpacity(0.24), color.withOpacity(0.01)],
+      colors: [color.withValues(alpha: 0.24), color.withValues(alpha: 0.01)],
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
     ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));

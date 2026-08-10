@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../grammar/services/grammar_progress_service.dart';
 
 class Streak {
   int days;
@@ -58,6 +59,8 @@ class VocabularyWord {
 }
 
 class AppState extends ChangeNotifier {
+  final GrammarProgressService _grammarProgressService = GrammarProgressService();
+
   bool _isDarkMode = false;
   bool _isLoggedIn = false;
   String _userName = "Jenil Navapara";
@@ -308,6 +311,33 @@ class AppState extends ChangeNotifier {
       _vocabGoalCount = (_vocabGoalCount + 1).clamp(0, 5);
       addXp(15);
     }
+  }
+
+  Future<Map<String, dynamic>> fetchGrammarProgress() async {
+    if (_accessToken == null) {
+      throw Exception('Not authenticated');
+    }
+    final progress = await _grammarProgressService.getGrammarProgress(_accessToken!);
+    _stats.grammarLessonsCompleted = progress['completed_topics'] ?? _stats.grammarLessonsCompleted;
+    _grammarGoalCount = ((progress['completed_topics'] ?? 0) > 0 ? 1 : 0).clamp(0, 1);
+    notifyListeners();
+    return progress;
+  }
+
+  Future<Map<String, dynamic>> completeGrammarTopic(String topicId, int correctAnswers) async {
+    if (_accessToken == null) {
+      throw Exception('Not authenticated');
+    }
+
+    final response = await _grammarProgressService.completeGrammarTopic(_accessToken!, topicId, correctAnswers);
+    final completedTopics = response['completed_topics'] ?? _stats.grammarLessonsCompleted;
+    _stats.grammarLessonsCompleted = completedTopics;
+    _grammarGoalCount = (completedTopics > 0 ? 1 : 0).clamp(0, 1);
+    if ((response['points_awarded'] ?? 0) > 0) {
+      addXp(response['points_awarded'] as int);
+    }
+    notifyListeners();
+    return response;
   }
 
   void completeGrammarQuiz() {

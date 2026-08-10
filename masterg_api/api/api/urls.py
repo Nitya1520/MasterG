@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('authentication.urls')),
     path('api/vocabulary/', include('vocabulary.urls')),
+    path('api/grammar/', include('grammar.urls')),
 ]

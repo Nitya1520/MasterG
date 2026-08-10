@@ -50,6 +50,11 @@ def register_view(request):
             c1_pointer=0,
             c2_pointer=0
         )
+
+        # Create grammar progress for the new user so grammar activities work immediately
+        from grammar.models import UserGrammarProgress
+        grammar_progress = UserGrammarProgress.objects.create(user=user)
+
         words_learned = 0
 
         display_name = user.email.split('@')[0].capitalize()

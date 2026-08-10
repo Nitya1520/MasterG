@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../theme/theme.dart';
 import '../learn/vocabulary_levels_screen.dart';
-import '../learn/grammar_quiz_screen.dart';
+import '../../grammar/screens/grammar_topics_screen.dart';
 import '../learn/speaking_practice_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -336,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
           context, theme, isDark,
           "Grammar", "Grammar lessons and quizzes",
           Icons.rule_folder_rounded, Colors.purple, (appState.grammarGoalCount / 1.0).clamp(0.0, 1.0),
-          () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GrammarQuizScreen())),
+          () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GrammarTopicsScreen())),
         ),
         _buildModuleCard(
           context, theme, isDark,

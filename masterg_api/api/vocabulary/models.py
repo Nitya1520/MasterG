@@ -39,6 +39,10 @@ class Vocabulary(models.Model):
     def __str__(self):
         return f"{self.level} - Word #{self.word_no}: {self.word}"
 
+
+
+
+
 class VocabularySentence(models.Model):
     vocabulary = models.ForeignKey(
         Vocabulary,
@@ -49,6 +53,10 @@ class VocabularySentence(models.Model):
 
     def __str__(self):
         return f"Sentence for {self.vocabulary.word}"
+
+
+
+
 
 class DailyVocabularyProgress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

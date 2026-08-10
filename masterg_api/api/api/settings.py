@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     # Custom apps
     'authentication',
     'vocabulary',
+    'grammar',
 ]
 
 MIDDLEWARE = [

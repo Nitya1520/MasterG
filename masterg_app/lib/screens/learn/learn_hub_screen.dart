@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../state/app_state.dart';
 import '../../theme/theme.dart';
 import 'vocabulary_levels_screen.dart';
-import 'grammar_quiz_screen.dart';
+import '../../grammar/screens/grammar_topics_screen.dart';
 import 'speaking_practice_screen.dart';
 
 class LearnHubScreen extends StatelessWidget {
@@ -57,7 +57,7 @@ class LearnHubScreen extends StatelessWidget {
               progressText: "${appState.grammarGoalCount}/1 lesson complete",
               progress: appState.grammarGoalCount / 1.0,
               color: Colors.purple,
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GrammarQuizScreen())),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GrammarTopicsScreen())),
             ),
             const SizedBox(height: 16),
 

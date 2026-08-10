@@ -7,182 +7,7 @@ from django.utils import timezone
 from datetime import date, timedelta
 from .models import UserProfile, Vocabulary, VocabularySentence, DailyVocabularyProgress
 
-# Rich seed data for Vocabulary levels
-SEED_VOCABULARY = {
-    "A1": [
-        {
-            "word": "Ambitious",
-            "pronunciation": "am-bi-shus",
-            "gujarati_meaning": "મહત્વાકાંક્ષી",
-            "english_meaning": "Having a strong desire to succeed.",
-            "sentences": [
-                "She is ambitious and wants to become a doctor.",
-                "My friend is ambitious about his career.",
-                "Ambitious students study every day.",
-                "He is ambitious and hardworking.",
-                "She has ambitious goals for the future."
-            ]
-        },
-        {
-            "word": "Curious",
-            "pronunciation": "kyoo-ree-uhs",
-            "gujarati_meaning": "જિજ્ઞાસુ / ઉત્સુક",
-            "english_meaning": "Eager to know or learn something.",
-            "sentences": [
-                "The boy was curious about how the machine works.",
-                "She gave me a curious look.",
-                "Curious kids ask a lot of questions.",
-                "I am curious to see what happens next.",
-                "Scientists are curious by nature."
-            ]
-        },
-        {
-            "word": "Delightful",
-            "pronunciation": "dih-lahyt-fuhl",
-            "gujarati_meaning": "આનંદદાયક",
-            "english_meaning": "Causing great pleasure or delight.",
-            "sentgences": [
-                "We had a delightful evening with our friends.",
-                "This garden is a delightful place to read.",
-                "The cake was absolutely delightful.",
-                "It was delightful to meet you.",
-                "She told a delightful story."
-            ]
-        },
-        {
-            "word": "Efficient",
-            "pronunciation": "ih-fish-uhnt",
-            "gujarati_meaning": "કાર્યક્ષમ",
-            "english_meaning": "Achieving maximum productivity with minimum wasted effort.",
-            "sentences": [
-                "An efficient assistant saves a lot of time.",
-                "We need to find a more efficient way to work.",
-                "The new heating system is very efficient.",
-                "He is highly efficient at handling complaints.",
-                "Fluorescent lamps are very efficient."
-            ]
-        },
-        {
-            "word": "Generous",
-            "pronunciation": "jen-er-uhs",
-            "gujarati_meaning": "ઉદાર",
-            "english_meaning": "Showing a readiness to give more of something than is necessary.",
-            "sentences": [
-                "It was very generous of you to pay for dinner.",
-                "She is always generous with her praise.",
-                "He made a generous donation to the charity.",
-                "A generous portion of soup was served.",
-                "They are generous hosts."
-            ]
-        }
-    ],
-    "A2": [
-        {
-            "word": "Adventure",
-            "pronunciation": "ad-ven-cher",
-            "gujarati_meaning": "સાહસ",
-            "english_meaning": "An unusual and exciting or daring experience.",
-            "sentences": [
-                "Traveling in the mountains was a great adventure.",
-                "They went on an adventure into the deep forest.",
-                "I love reading stories about wilderness adventures.",
-                "She is looking for a new job adventure.",
-                "Adventure travel is growing in popularity."
-            ]
-        },
-        {
-            "word": "Comfortable",
-            "pronunciation": "kuhm-fter-buhl",
-            "gujarati_meaning": "આરામદાયક",
-            "english_meaning": "Providing physical ease and relaxation.",
-            "sentences": [
-                "This sofa is very comfortable.",
-                "Are you comfortable in that chair?",
-                "We had a comfortable flight.",
-                "He lives a comfortable life in the suburbs.",
-                "Wear comfortable shoes for walking."
-            ]
-        }
-    ],
-    "B1": [
-        {
-            "word": "Eloquent",
-            "pronunciation": "el-uh-kwuhnt",
-            "gujarati_meaning": "સુવક્તા",
-            "english_meaning": "Fluent or persuasive in speaking or writing.",
-            "sentences": [
-                "She gave an eloquent speech at the ceremony.",
-                "His writing style is highly eloquent.",
-                "An eloquent argument convinced the jury.",
-                "He was eloquent in his defense of the environment.",
-                "Her eyes were more eloquent than words."
-            ]
-        }
-    ],
-    "B2": [
-        {
-            "word": "Pragmatic",
-            "pronunciation": "prag-mat-ik",
-            "gujarati_meaning": "વ્યવહારિક",
-            "english_meaning": "Dealing with things realistically based on practical considerations.",
-            "sentences": [
-                "We need a pragmatic solution to this traffic issue.",
-                "He took a pragmatic approach to the dispute.",
-                "She is very pragmatic about career choices.",
-                "Let's be pragmatic and look at the cost.",
-                "Pragmatic business decisions help save money."
-            ]
-        }
-    ],
-    "C1": [
-        {
-            "word": "Mitigate",
-            "pronunciation": "mit-i-geyt",
-            "gujarati_meaning": "નરમ કરવું / ઓછું કરવું",
-            "english_meaning": "Make something bad less severe, serious, or painful.",
-            "sentences": [
-                "The government took steps to mitigate the flood damage.",
-                "Planting trees helps mitigate climate impact.",
-                "We can mitigate the risk by testing early.",
-                "Medicine was given to mitigate the pain.",
-                "Actions were taken to mitigate loss of data."
-            ]
-        }
-    ],
-    "C2": [
-        {
-            "word": "Superfluous",
-            "pronunciation": "soo-pur-floo-uhs",
-            "gujarati_meaning": "વધારાનું / બિનજરૂરી",
-            "english_meaning": "Unnecessary, especially through being more than enough.",
-            "sentences": [
-                "Please delete any superfluous words in your essay.",
-                "Superfluous packaging is bad for the environment.",
-                "We have all the data we need; more is superfluous.",
-                "He avoided superfluous details in the report.",
-                "Superfluous spendings should be cut down."
-            ]
-        }
-    ]
-}
 
-def seed_vocabulary_database():
-    if Vocabulary.objects.count() == 0:
-        for lvl, words in SEED_VOCABULARY.items():
-            for i, w in enumerate(words):
-                vocab = Vocabulary.objects.create(
-                    level=lvl,
-                    word_no=i + 1,
-                    word=w["word"],
-                    pronunciation=w["pronunciation"],
-                    gujarati_meaning=w["gujarati_meaning"],
-                    english_meaning=w["english_meaning"]
-                )
-                for sent in w["sentences"]:
-                    VocabularySentence.objects.create(
-                        vocabulary=vocab,
-                        sentence=sent
-                    )
 
 def get_user_profile(user):
     profile, created = UserProfile.objects.get_or_create(
@@ -212,7 +37,6 @@ def get_user_from_request(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def levels_view(request):
-    seed_vocabulary_database()
     user = get_user_from_request(request)
     profile = get_user_profile(user)
 
@@ -228,7 +52,6 @@ def levels_view(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def current_word_view(request):
-    seed_vocabulary_database()
     user = get_user_from_request(request)
     profile = get_user_profile(user)
     level = request.query_params.get('level', 'A1')
@@ -275,7 +98,6 @@ def current_word_view(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def next_word_view(request):
-    seed_vocabulary_database()
     user = get_user_from_request(request)
     profile = get_user_profile(user)
     level = request.data.get('level', 'A1')
@@ -350,7 +172,6 @@ def next_word_view(request):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def user_profile_view(request):
-    seed_vocabulary_database()
     user = get_user_from_request(request)
     profile = get_user_profile(user)
     

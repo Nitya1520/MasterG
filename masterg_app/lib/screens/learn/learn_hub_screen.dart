@@ -4,6 +4,7 @@ import '../../theme/theme.dart';
 import 'vocabulary_levels_screen.dart';
 import '../../grammar/screens/grammar_topics_screen.dart';
 import 'speaking_practice_screen.dart';
+import 'rapid_fire_screen.dart';
 
 class LearnHubScreen extends StatelessWidget {
   const LearnHubScreen({super.key});
@@ -75,20 +76,16 @@ class LearnHubScreen extends StatelessWidget {
 
             _buildPathCard(
               theme, isDark,
-              title: "🎧 Audio Listening Comp",
-              subtitle: "Listen and answer questions",
-              description: "Improve verbal tracking with native recordings and scenario tests.",
-              progressText: "Locked • Level up to open",
-              progress: 0.0,
-              color: Colors.pink,
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Complete previous modules to unlock Listening comprehension."),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              },
+              title: "⚡ Rapid Fire Vocabulary",
+              subtitle: "Gujarati-to-English spelling challenge",
+              description: "Spell 10 Gujarati vocabulary prompts in English.",
+              progressText: "${appState.pointBalance} total points",
+              progress: (appState.pointBalance / 500.0).clamp(0.0, 1.0),
+              color: Colors.teal,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const RapidFireScreen()),
+              ),
             ),
             const SizedBox(height: 30),
           ],
@@ -103,10 +100,10 @@ class LearnHubScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: AppTheme.cardBorderRadius,
-        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha:0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha:0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -146,9 +143,9 @@ class LearnHubScreen extends StatelessWidget {
                   gradient: AppTheme.goldGradient,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  "LVL 3",
-                  style: TextStyle(
+                child: Text(
+                  appState.userLevel,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
@@ -163,15 +160,15 @@ class LearnHubScreen extends StatelessWidget {
             child: SizedBox(
               height: 6,
               child: LinearProgressIndicator(
-                value: appState.streak.progress,
-                backgroundColor: theme.colorScheme.outlineVariant.withOpacity(0.4),
+                value: (appState.pointBalance % 500) / 500.0,
+                backgroundColor: theme.colorScheme.outlineVariant.withValues(alpha:0.4),
                 valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
               ),
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            "Reach 500 XP to advance to next level path",
+            "${500 - (appState.pointBalance % 500)} points to next milestone",
             style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
           ),
         ],
@@ -194,10 +191,10 @@ class LearnHubScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: AppTheme.cardBorderRadius,
-        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha:0.5)),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.015),
+            color: isDark ? Colors.black.withValues(alpha:0.2) : Colors.black.withValues(alpha:0.015),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -240,7 +237,7 @@ class LearnHubScreen extends StatelessWidget {
                 description,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   fontSize: 13,
-                  color: theme.colorScheme.onBackground.withOpacity(0.8),
+                  color: theme.colorScheme.onSurface.withValues(alpha:0.8),
                 ),
               ),
               const SizedBox(height: 18),
@@ -266,7 +263,7 @@ class LearnHubScreen extends StatelessWidget {
                   height: 4,
                   child: LinearProgressIndicator(
                     value: progress.clamp(0.0, 1.0),
-                    backgroundColor: color.withOpacity(0.1),
+                    backgroundColor: color.withValues(alpha:0.1),
                     valueColor: AlwaysStoppedAnimation<Color>(color),
                   ),
                 ),

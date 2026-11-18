@@ -126,7 +126,7 @@ class _GrammarQuizScreenState extends State<GrammarQuizScreen> {
                     const Icon(Icons.flash_on_rounded, color: Colors.indigoAccent, size: 20),
                     const SizedBox(width: 6),
                     Text(
-                      "+$earnedXp XP Added",
+                      "+$earnedXp Points Added",
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF6366F1),
@@ -139,8 +139,18 @@ class _GrammarQuizScreenState extends State<GrammarQuizScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    state.addXp(earnedXp);
+                  onPressed: () async {
+                    try {
+                      await state.submitPoints(earnedXp, activity: 'grammar');
+                      await state.submitPoints(earnedXp, activity: 'grammar');
+                    } catch (_) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Could not save points. Try again.')),
+                      );
+                      return;
+                    }
+                    if (!context.mounted) return;
                     Navigator.pop(context); // Close dialog
                     Navigator.pop(context); // Back to dashboard
                   },

@@ -45,7 +45,10 @@ class _GrammarTopicsScreenState extends State<GrammarTopicsScreen> {
       final progress = await appState.fetchGrammarProgress();
       if (!mounted) return;
       setState(() {
-        _completedTopicIds = (progress['completed_topic_ids'] as List<dynamic>? ?? []).map((e) => e.toString()).toSet();
+        _completedTopicIds =
+            (progress['completed_topic_ids'] as List<dynamic>? ?? [])
+                .map((e) => e.toString())
+                .toSet();
         _totalPoints = progress['total_points'] ?? 0;
         _completedTopics = progress['completed_topics'] ?? 0;
         _isLoading = false;
@@ -60,7 +63,8 @@ class _GrammarTopicsScreenState extends State<GrammarTopicsScreen> {
     setState(() {
       _query = value.trim().toLowerCase();
       _filteredTopics = _topics.where((topic) {
-        final haystack = '${topic.title} ${topic.shortDescription}'.toLowerCase();
+        final haystack = '${topic.title} ${topic.shortDescription}'
+            .toLowerCase();
         return haystack.contains(_query);
       }).toList();
     });
@@ -70,9 +74,7 @@ class _GrammarTopicsScreenState extends State<GrammarTopicsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Grammar'),
-      ),
+      appBar: AppBar(title: const Text('Grammar')),
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -83,14 +85,19 @@ class _GrammarTopicsScreenState extends State<GrammarTopicsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Search grammar topics...', style: theme.textTheme.bodyMedium),
+                        Text(
+                          'Search grammar topics...',
+                          style: theme.textTheme.bodyMedium,
+                        ),
                         const SizedBox(height: 8),
                         TextField(
                           onChanged: _filterTopics,
                           decoration: InputDecoration(
                             prefixIcon: const Icon(Icons.search),
                             hintText: 'Search grammar topics...',
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -99,18 +106,32 @@ class _GrammarTopicsScreenState extends State<GrammarTopicsScreen> {
                           decoration: BoxDecoration(
                             color: theme.colorScheme.surface,
                             borderRadius: AppTheme.cardBorderRadius,
-                            border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+                            border: Border.all(
+                              color: theme.colorScheme.outlineVariant
+                                  .withValues(alpha:0.5),
+                            ),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.emoji_events_rounded, color: Colors.amber),
+                              const Icon(
+                                Icons.emoji_events_rounded,
+                                color: Colors.amber,
+                              ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text('Grammar Progress', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                    Text('$_completedTopics / ${_topics.length} topics completed'),
+                                    Text(
+                                      'Grammar Progress',
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    Text(
+                                      '$_completedTopics / ${_topics.length} topics completed',
+                                    ),
                                     Text('$_totalPoints points'),
                                   ],
                                 ),
@@ -127,30 +148,71 @@ class _GrammarTopicsScreenState extends State<GrammarTopicsScreen> {
                       itemCount: _filteredTopics.length,
                       itemBuilder: (context, index) {
                         final topic = _filteredTopics[index];
-                        final isCompleted = _completedTopicIds.contains(topic.id);
+                        final isCompleted = _completedTopicIds.contains(
+                          topic.id,
+                        );
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Card(
-                            shape: RoundedRectangleBorder(borderRadius: AppTheme.cardBorderRadius),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: AppTheme.cardBorderRadius,
+                            ),
                             child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              leading: CircleAvatar(
-                                backgroundColor: isCompleted ? Colors.green.shade100 : Colors.deepPurple.shade100,
-                                child: Icon(isCompleted ? Icons.check_circle_rounded : Icons.menu_book_rounded, color: isCompleted ? Colors.green : Colors.deepPurple),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
                               ),
-                              title: Text(topic.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              leading: CircleAvatar(
+                                backgroundColor: isCompleted
+                                    ? Colors.green.shade100
+                                    : Colors.deepPurple.shade100,
+                                child: Icon(
+                                  isCompleted
+                                      ? Icons.check_circle_rounded
+                                      : Icons.menu_book_rounded,
+                                  color: isCompleted
+                                      ? Colors.green
+                                      : Colors.deepPurple,
+                                ),
+                              ),
+                              title: Text(
+                                topic.title,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               subtitle: Text(topic.shortDescription),
                               trailing: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text(isCompleted ? 'Completed' : 'Not completed', style: TextStyle(color: isCompleted ? Colors.green : Colors.grey.shade700, fontWeight: FontWeight.w600)),
-                                  Text('+10 points', style: TextStyle(color: Colors.deepPurple.shade500, fontSize: 12)),
+                                  Text(
+                                    isCompleted ? 'Completed' : 'Not completed',
+                                    style: TextStyle(
+                                      color: isCompleted
+                                          ? Colors.green
+                                          : Colors.grey.shade700,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    '+10 points',
+                                    style: TextStyle(
+                                      color: Colors.deepPurple.shade500,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ],
                               ),
                               onTap: () async {
                                 await Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => GrammarTopicDetailScreen(topic: topic, onProgressUpdated: _loadProgress)),
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        GrammarTopicDetailScreen(
+                                          topic: topic,
+                                          onProgressUpdated: _loadProgress,
+                                        ),
+                                  ),
                                 );
                               },
                             ),
@@ -170,10 +232,15 @@ class GrammarTopicDetailScreen extends StatefulWidget {
   final GrammarTopic topic;
   final Future<void> Function() onProgressUpdated;
 
-  const GrammarTopicDetailScreen({super.key, required this.topic, required this.onProgressUpdated});
+  const GrammarTopicDetailScreen({
+    super.key,
+    required this.topic,
+    required this.onProgressUpdated,
+  });
 
   @override
-  State<GrammarTopicDetailScreen> createState() => _GrammarTopicDetailScreenState();
+  State<GrammarTopicDetailScreen> createState() =>
+      _GrammarTopicDetailScreenState();
 }
 
 class _GrammarTopicDetailScreenState extends State<GrammarTopicDetailScreen> {
@@ -186,8 +253,6 @@ class _GrammarTopicDetailScreenState extends State<GrammarTopicDetailScreen> {
   String? _resultMessage;
   bool _completed = false;
   bool _alreadyCompleted = false;
-  int _pointsAwarded = 0;
-
   void _submitAnswer() {
     final question = widget.topic.quizQuestions[_currentQuestionIndex];
     final isCorrect = _selectedAnswerIndex == question.correctAnswerIndex;
@@ -227,11 +292,13 @@ class _GrammarTopicDetailScreenState extends State<GrammarTopicDetailScreen> {
 
       setState(() => _isSubmitting = true);
       try {
-        final response = await appState.completeGrammarTopic(widget.topic.id, _correctAnswers);
+        final response = await appState.completeGrammarTopic(
+          widget.topic.id,
+          _correctAnswers,
+        );
         setState(() {
           _completed = response['topic_completed'] == true;
           _alreadyCompleted = response['already_completed'] == true;
-          _pointsAwarded = (response['points_awarded'] ?? 0) as int;
           _resultMessage = _alreadyCompleted
               ? '✓ Already Completed\nNo additional points awarded.'
               : '🎉 Excellent!\nYou completed this topic.';
@@ -246,7 +313,8 @@ class _GrammarTopicDetailScreenState extends State<GrammarTopicDetailScreen> {
       }
     } else {
       setState(() {
-        _resultMessage = 'Keep practicing!\nYou got ${_correctAnswers}/${widget.topic.quizQuestions.length}.\nYou need all 5 answers correct to complete this topic.';
+        _resultMessage =
+            'Keep practicing!\nYou got $_correctAnswers/${widget.topic.quizQuestions.length}.\nYou need all 5 answers correct to complete this topic.';
       });
     }
   }
@@ -265,7 +333,12 @@ class _GrammarTopicDetailScreenState extends State<GrammarTopicDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(widget.topic.title, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                widget.topic.title,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 8),
               Text(widget.topic.introduction, style: theme.textTheme.bodyLarge),
               const SizedBox(height: 20),
@@ -281,66 +354,353 @@ class _GrammarTopicDetailScreenState extends State<GrammarTopicDetailScreen> {
               const SizedBox(height: 16),
               _buildSection('Tips', widget.topic.tips),
               const SizedBox(height: 24),
-              Text('5-question quiz', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
+              Text(
+                'Quick practice',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                'Choose the best answer to complete the sentence.',
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
               if (!_quizFinished)
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Question ${_currentQuestionIndex + 1} of ${widget.topic.quizQuestions.length}', style: theme.textTheme.bodyMedium),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface,
-                        borderRadius: AppTheme.cardBorderRadius,
-                        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
-                      ),
-                      child: Text(question.question, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'QUESTION ${_currentQuestionIndex + 1}',
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        Text(
+                          '${_currentQuestionIndex + 1} / ${widget.topic.quizQuestions.length}',
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 9),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: LinearProgressIndicator(
+                        value:
+                            (_currentQuestionIndex + 1) /
+                            widget.topic.quizQuestions.length,
+                        minHeight: 6,
+                        backgroundColor: theme.colorScheme.primary.withValues(
+                          alpha: 0.12,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            theme.colorScheme.primary.withValues(alpha: 0.11),
+                            theme.colorScheme.secondary.withValues(alpha: 0.07),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.16,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.edit_note_rounded,
+                                color: theme.colorScheme.primary,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 7),
+                              Text(
+                                'COMPLETE THE SENTENCE',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.7,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            question.question,
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontSize: 20,
+                              height: 1.4,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'YOUR ANSWER',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
                     ...List.generate(question.options.length, (index) {
                       final isSelected = _selectedAnswerIndex == index;
+                      final isCorrectOption =
+                          _quizSubmitted &&
+                          index == question.correctAnswerIndex;
+                      final isWrongSelection =
+                          _quizSubmitted &&
+                          isSelected &&
+                          index != question.correctAnswerIndex;
+                      final highlightColor = isCorrectOption
+                          ? const Color(0xFF16A36A)
+                          : isWrongSelection
+                          ? theme.colorScheme.error
+                          : theme.colorScheme.primary;
+                      final isHighlighted =
+                          isCorrectOption ||
+                          isWrongSelection ||
+                          (!_quizSubmitted && isSelected);
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: InkWell(
-                          onTap: _quizSubmitted ? null : () => setState(() => _selectedAnswerIndex = index),
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: isSelected ? theme.colorScheme.primary.withOpacity(0.12) : theme.colorScheme.surface,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outlineVariant.withOpacity(0.5)),
+                        padding: const EdgeInsets.only(bottom: 9),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          decoration: BoxDecoration(
+                            color: isHighlighted
+                                ? highlightColor.withValues(alpha: 0.09)
+                                : theme.colorScheme.surface,
+                            borderRadius: BorderRadius.circular(17),
+                            border: Border.all(
+                              color: isHighlighted
+                                  ? highlightColor
+                                  : theme.colorScheme.outlineVariant.withValues(
+                                      alpha: 0.65,
+                                    ),
+                              width: isHighlighted ? 1.6 : 1,
                             ),
-                            child: Text(question.options[index]),
+                            boxShadow: isSelected && !_quizSubmitted
+                                ? [
+                                    BoxShadow(
+                                      color: theme.colorScheme.primary
+                                          .withValues(alpha: 0.08),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: InkWell(
+                            onTap: _quizSubmitted
+                                ? null
+                                : () => setState(
+                                    () => _selectedAnswerIndex = index,
+                                  ),
+                            borderRadius: BorderRadius.circular(17),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 15,
+                                vertical: 13,
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 34,
+                                    height: 34,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: isHighlighted
+                                          ? highlightColor
+                                          : theme
+                                                .colorScheme
+                                                .surfaceContainerHighest,
+                                      borderRadius: BorderRadius.circular(11),
+                                    ),
+                                    child: isCorrectOption
+                                        ? const Icon(
+                                            Icons.check_rounded,
+                                            color: Colors.white,
+                                            size: 20,
+                                          )
+                                        : isWrongSelection
+                                        ? const Icon(
+                                            Icons.close_rounded,
+                                            color: Colors.white,
+                                            size: 20,
+                                          )
+                                        : Text(
+                                            String.fromCharCode(65 + index),
+                                            style: TextStyle(
+                                              color: isHighlighted
+                                                  ? Colors.white
+                                                  : theme
+                                                        .colorScheme
+                                                        .onSurfaceVariant,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                  ),
+                                  const SizedBox(width: 13),
+                                  Expanded(
+                                    child: Text(
+                                      question.options[index],
+                                      style: theme.textTheme.bodyLarge
+                                          ?.copyWith(
+                                            fontWeight: isSelected
+                                                ? FontWeight.w800
+                                                : FontWeight.w600,
+                                            color: isHighlighted
+                                                ? highlightColor
+                                                : theme.colorScheme.onSurface,
+                                          ),
+                                    ),
+                                  ),
+                                  if (!_quizSubmitted && isSelected)
+                                    Icon(
+                                      Icons.radio_button_checked_rounded,
+                                      color: theme.colorScheme.primary,
+                                    )
+                                  else if (!_quizSubmitted)
+                                    Icon(
+                                      Icons.radio_button_unchecked_rounded,
+                                      color: theme.colorScheme.outline,
+                                    ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       );
                     }),
-                    const SizedBox(height: 12),
                     if (!_quizSubmitted)
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _selectedAnswerIndex == null ? null : _submitAnswer,
-                          child: const Text('Check Answer'),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 7),
+                        child: SizedBox(
+                          height: 54,
+                          child: FilledButton.icon(
+                            onPressed: _selectedAnswerIndex == null
+                                ? null
+                                : _submitAnswer,
+                            icon: const Icon(
+                              Icons.check_circle_outline_rounded,
+                            ),
+                            label: const Text('Check answer'),
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              textStyle: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
                         ),
                       )
                     else
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(isCorrect ? 'Correct!' : 'Not quite.', style: TextStyle(color: isCorrect ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 6),
-                          Text(question.explanation),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _isSubmitting ? null : _nextQuestion,
-                              child: Text(_currentQuestionIndex < widget.topic.quizQuestions.length - 1 ? 'Next Question' : 'Finish Quiz'),
-                            ),
+                      Container(
+                        margin: const EdgeInsets.only(top: 7),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color:
+                              (isCorrect
+                                      ? const Color(0xFF16A36A)
+                                      : theme.colorScheme.error)
+                                  .withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color:
+                                (isCorrect
+                                        ? const Color(0xFF16A36A)
+                                        : theme.colorScheme.error)
+                                    .withValues(alpha: 0.3),
                           ),
-                        ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  isCorrect
+                                      ? Icons.check_circle_rounded
+                                      : Icons.info_rounded,
+                                  color: isCorrect
+                                      ? const Color(0xFF16A36A)
+                                      : theme.colorScheme.error,
+                                ),
+                                const SizedBox(width: 9),
+                                Text(
+                                  isCorrect
+                                      ? 'That’s correct!'
+                                      : 'Keep learning',
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: isCorrect
+                                        ? const Color(0xFF16A36A)
+                                        : theme.colorScheme.error,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 7),
+                            Text(
+                              question.explanation,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                height: 1.45,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            SizedBox(
+                              height: 50,
+                              child: FilledButton.icon(
+                                onPressed: _isSubmitting ? null : _nextQuestion,
+                                icon: Icon(
+                                  _currentQuestionIndex <
+                                          widget.topic.quizQuestions.length - 1
+                                      ? Icons.arrow_forward_rounded
+                                      : Icons.flag_rounded,
+                                ),
+                                label: Text(
+                                  _currentQuestionIndex <
+                                          widget.topic.quizQuestions.length - 1
+                                      ? 'Next question'
+                                      : 'Finish quiz',
+                                ),
+                                style: FilledButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  textStyle: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                   ],
                 )
@@ -350,12 +710,20 @@ class _GrammarTopicDetailScreenState extends State<GrammarTopicDetailScreen> {
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
                     borderRadius: AppTheme.cardBorderRadius,
-                    border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+                    border: Border.all(
+                      color: theme.colorScheme.outlineVariant.withValues(alpha:0.5),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(_resultMessage ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(
+                        _resultMessage ?? '',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                       if (_completed) ...[
                         const SizedBox(height: 8),
                         Text('+10 Points awarded'),
@@ -363,10 +731,11 @@ class _GrammarTopicDetailScreenState extends State<GrammarTopicDetailScreen> {
                         const SizedBox(height: 8),
                         const Text('✓ Already Completed'),
                       ],
-                      if (_isSubmitting) const Padding(
-                        padding: EdgeInsets.only(top: 12),
-                        child: CircularProgressIndicator(),
-                      ),
+                      if (_isSubmitting)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 12),
+                          child: CircularProgressIndicator(),
+                        ),
                     ],
                   ),
                 ),
@@ -381,19 +750,24 @@ class _GrammarTopicDetailScreenState extends State<GrammarTopicDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
         const SizedBox(height: 8),
-        ...items.map((item) => Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.arrow_right_rounded, size: 18),
-              const SizedBox(width: 6),
-              Expanded(child: Text(item)),
-            ],
+        ...items.map(
+          (item) => Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.arrow_right_rounded, size: 18),
+                const SizedBox(width: 6),
+                Expanded(child: Text(item)),
+              ],
+            ),
           ),
-        )),
+        ),
       ],
     );
   }

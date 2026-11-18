@@ -43,10 +43,19 @@ class _VocabularyScreenState extends State<VocabularyScreen> with SingleTickerPr
     });
   }
 
-  void _handleWordAction(AppState state, bool learned) {
+  Future<void> _handleWordAction(AppState state, bool learned) async {
     if (learned) {
       final currentWord = state.vocabularyList[_currentIndex];
-      state.learnVocabularyWord(currentWord.word);
+      try {
+        await state.learnVocabularyWord(currentWord.word);
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Could not save points. Try again.')),
+          );
+        }
+        return;
+      }
     }
 
     if (_currentIndex < state.vocabularyList.length - 1) {
@@ -115,7 +124,7 @@ class _VocabularyScreenState extends State<VocabularyScreen> with SingleTickerPr
                     Icon(Icons.local_fire_department_rounded, color: Colors.orange, size: 20),
                     SizedBox(width: 6),
                     Text(
-                      "+75 XP Earned",
+                      "+75 Points Earned",
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.amber,
@@ -128,8 +137,17 @@ class _VocabularyScreenState extends State<VocabularyScreen> with SingleTickerPr
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    state.addXp(75);
+                  onPressed: () async {
+                    try {
+                      await state.submitPoints(75, activity: 'vocabulary');
+                    } catch (_) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Could not save points. Try again.')),
+                      );
+                      return;
+                    }
+                    if (!context.mounted) return;
                     Navigator.pop(context); // Close dialog
                     Navigator.pop(context); // Go back to dashboard
                   },

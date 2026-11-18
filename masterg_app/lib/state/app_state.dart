@@ -2,16 +2,18 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 import '../grammar/services/grammar_progress_service.dart';
 
 class Streak {
   int days;
-  int xp;
-  int targetXp;
+  int? _longestDays;
 
-  Streak({required this.days, required this.xp, this.targetXp = 500});
+  int get longestDays => _longestDays ?? days;
 
-  double get progress => (xp / targetXp).clamp(0.0, 1.0);
+  set longestDays(int value) => _longestDays = value;
+
+  Streak({required this.days, required int this._longestDays});
 }
 
 class UserStats {
@@ -28,16 +30,81 @@ class UserStats {
   });
 }
 
+class LeaderboardEntry {
+  const LeaderboardEntry({
+    required this.id,
+    required this.username,
+    required this.points,
+    required this.rank,
+  });
+
+  final int id;
+  final String username;
+  final int points;
+  final int rank;
+
+  factory LeaderboardEntry.fromJson(Map<String, dynamic> json) {
+    if (json['id'] is! int ||
+        json['username'] is! String ||
+        json['points'] is! int ||
+        json['rank'] is! int) {
+      throw const FormatException(
+        'The server returned invalid leaderboard data.',
+      );
+    }
+
+    return LeaderboardEntry(
+      id: json['id'] as int,
+      username: json['username'] as String,
+      points: json['points'] as int,
+      rank: json['rank'] as int,
+    );
+  }
+}
+
+class LeaderboardSnapshot {
+  const LeaderboardSnapshot({
+    required this.topUsers,
+    required this.currentUser,
+    required this.totalUsers,
+  });
+
+  final List<LeaderboardEntry> topUsers;
+  final LeaderboardEntry currentUser;
+  final int totalUsers;
+
+  factory LeaderboardSnapshot.fromJson(Map<String, dynamic> json) {
+    final topUsersJson = json['top_users'];
+    final currentUserJson = json['current_user'];
+    if (topUsersJson is! List ||
+        currentUserJson is! Map<String, dynamic> ||
+        json['total_users'] is! int) {
+      throw const FormatException(
+        'The server returned invalid leaderboard data.',
+      );
+    }
+
+    return LeaderboardSnapshot(
+      topUsers: topUsersJson.map((entry) {
+        if (entry is! Map<String, dynamic>) {
+          throw const FormatException(
+            'The server returned an invalid leaderboard entry.',
+          );
+        }
+        return LeaderboardEntry.fromJson(entry);
+      }).toList(),
+      currentUser: LeaderboardEntry.fromJson(currentUserJson),
+      totalUsers: json['total_users'] as int,
+    );
+  }
+}
+
 class Message {
   final String text;
   final bool isUser;
   final DateTime time;
 
-  Message({
-    required this.text,
-    required this.isUser,
-    required this.time,
-  });
+  Message({required this.text, required this.isUser, required this.time});
 }
 
 class VocabularyWord {
@@ -59,31 +126,40 @@ class VocabularyWord {
 }
 
 class AppState extends ChangeNotifier {
-  final GrammarProgressService _grammarProgressService = GrammarProgressService();
+  static const String _dailyChatGreeting =
+      "Hi! I am G-Bot, your AI English assistant. How has your day been so far?";
+
+  final GrammarProgressService _grammarProgressService =
+      GrammarProgressService();
 
   bool _isDarkMode = false;
   bool _isLoggedIn = false;
-  String _userName = "Jenil Navapara";
-  String _userLevel = "Intermediate (B1)";
+  String _userName = "Learner";
+  String _userLevel = "A1";
   String? _accessToken;
+  String? _refreshToken;
+  Future<bool>? _refreshInFlight;
 
   late Streak _streak;
   late UserStats _stats;
   late List<VocabularyWord> _vocabularyList;
   late List<Message> _chatHistory;
+  DateTime _chatHistoryDate = DateTime.now();
+  Timer? _dailyChatResetTimer;
 
   // Track daily goals (out of 100)
   int _vocabGoalCount = 0; // target 5
   int _grammarGoalCount = 0; // target 1
   int _speakingGoalCount = 0; // target 1
+  int _pointBalance = 0;
 
   AppState() {
-    _streak = Streak(days: 12, xp: 450, targetXp: 500);
+    _streak = Streak(days: 0, longestDays: 0);
     _stats = UserStats(
-      wordsLearned: 142,
-      grammarLessonsCompleted: 18,
-      speakingSessionsCompleted: 7,
-      chatSessionsCompleted: 14,
+      wordsLearned: 0,
+      grammarLessonsCompleted: 0,
+      speakingSessionsCompleted: 0,
+      chatSessionsCompleted: 0,
     );
 
     _vocabularyList = [
@@ -97,21 +173,24 @@ class AppState extends ChangeNotifier {
       VocabularyWord(
         word: "Pragmatic",
         type: "adjective",
-        definition: "Dealing with things sensibly and realistically in a way that is based on practical rather than theoretical considerations.",
+        definition:
+            "Dealing with things sensibly and realistically in a way that is based on practical rather than theoretical considerations.",
         example: "A pragmatic approach to politics is often best.",
         translation: "व्यवहारिक",
       ),
       VocabularyWord(
         word: "Ambiguity",
         type: "noun",
-        definition: "The quality of being open to more than one interpretation; inexactness.",
+        definition:
+            "The quality of being open to more than one interpretation; inexactness.",
         example: "We should avoid ambiguity in our contracts.",
         translation: "अस्पष्टता",
       ),
       VocabularyWord(
         word: "Benevolent",
         type: "adjective",
-        definition: "Well meaning and kindly; serving a charitable rather than a profit-making purpose.",
+        definition:
+            "Well meaning and kindly; serving a charitable rather than a profit-making purpose.",
         example: "A benevolent donor funded the new library.",
         translation: "परोपकारी",
       ),
@@ -125,7 +204,8 @@ class AppState extends ChangeNotifier {
       VocabularyWord(
         word: "Resilient",
         type: "adjective",
-        definition: "Able to withstand or recover quickly from difficult conditions.",
+        definition:
+            "Able to withstand or recover quickly from difficult conditions.",
         example: "Children are often remarkably resilient.",
         translation: "लचीला",
       ),
@@ -138,13 +218,8 @@ class AppState extends ChangeNotifier {
       ),
     ];
 
-    _chatHistory = [
-      Message(
-        text: "Hi Jenil! I am G-Bot, your AI English assistant. Let's practice conversation. How has your day been so far?",
-        isUser: false,
-        time: DateTime.now().subtract(const Duration(minutes: 5)),
-      ),
-    ];
+    _chatHistory = _createDailyChatHistory(DateTime.now());
+    _scheduleDailyChatReset();
   }
 
   // Getters
@@ -156,11 +231,49 @@ class AppState extends ChangeNotifier {
   Streak get streak => _streak;
   UserStats get stats => _stats;
   List<VocabularyWord> get vocabularyList => _vocabularyList;
-  List<Message> get chatHistory => _chatHistory;
+  List<Message> get chatHistory {
+    _resetChatHistoryIfNewDay();
+    return _chatHistory;
+  }
+
+  List<Message> _createDailyChatHistory(DateTime now) => [
+    Message(text: _dailyChatGreeting, isUser: false, time: now),
+  ];
+
+  bool _resetChatHistoryIfNewDay() {
+    final now = DateTime.now();
+    if (_chatHistoryDate.year == now.year &&
+        _chatHistoryDate.month == now.month &&
+        _chatHistoryDate.day == now.day) {
+      return false;
+    }
+
+    _chatHistoryDate = now;
+    _chatHistory = _createDailyChatHistory(now);
+    return true;
+  }
+
+  void _scheduleDailyChatReset() {
+    final now = DateTime.now();
+    final nextMidnight = DateTime(now.year, now.month, now.day + 1);
+    _dailyChatResetTimer = Timer(nextMidnight.difference(now), () {
+      if (_resetChatHistoryIfNewDay()) {
+        notifyListeners();
+      }
+      _scheduleDailyChatReset();
+    });
+  }
+
+  @override
+  void dispose() {
+    _dailyChatResetTimer?.cancel();
+    super.dispose();
+  }
 
   int get vocabGoalCount => _vocabGoalCount;
   int get grammarGoalCount => _grammarGoalCount;
   int get speakingGoalCount => _speakingGoalCount;
+  int get pointBalance => _pointBalance;
 
   double get dailyGoalCompletion {
     // Vocab goal: 5 words (each counts 20% of vocab progress, vocab progress contributes 40% of total daily goal)
@@ -178,7 +291,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  static const String apiBaseUrl = "http://127.0.0.1:8000/api/auth";
+  static const String apiBaseUrl = "${ApiConfig.apiBaseUrl}/auth";
 
   Future<String?> login(String email, String password) async {
     try {
@@ -194,24 +307,28 @@ class AppState extends ChangeNotifier {
         _isLoggedIn = true;
         if (data['tokens'] != null) {
           _accessToken = data['tokens']['access'];
+          _refreshToken = data['tokens']['refresh'];
         }
         if (data['user'] != null) {
           final userData = data['user'];
-          _userName = userData['username'] ?? "Jenil Navapara";
-          _userLevel = userData['level'] ?? "Intermediate (B1)";
+          _userName = userData['username'] ?? "Learner";
+          _userLevel = userData['level'] ?? "A1";
           if (userData['stats'] != null) {
             final statsData = userData['stats'];
             _stats = UserStats(
-              wordsLearned: statsData['wordsLearned'] ?? 142,
-              grammarLessonsCompleted: statsData['grammarLessonsCompleted'] ?? 18,
-              speakingSessionsCompleted: statsData['speakingSessionsCompleted'] ?? 7,
-              chatSessionsCompleted: statsData['chatSessionsCompleted'] ?? 14,
+              wordsLearned: statsData['wordsLearned'] ?? 0,
+              grammarLessonsCompleted:
+                  statsData['grammarLessonsCompleted'] ?? 0,
+              speakingSessionsCompleted:
+                  statsData['speakingSessionsCompleted'] ?? 0,
+              chatSessionsCompleted: statsData['chatSessionsCompleted'] ?? 0,
             );
           }
           _streak = Streak(
-            days: userData['streak'] ?? 12,
-            xp: userData['xp'] ?? 450,
+            days: userData['streak'] ?? 0,
+            longestDays: userData['longest_streak'] ?? 0,
           );
+          _pointBalance = userData['point'] ?? 0;
         }
         notifyListeners();
         return null; // Success
@@ -226,7 +343,71 @@ class AppState extends ChangeNotifier {
   void logout() {
     _isLoggedIn = false;
     _accessToken = null;
+    _refreshToken = null;
     notifyListeners();
+  }
+
+  Future<http.Response> authenticatedRequest(
+    Future<http.Response> Function(String token) sendRequest,
+  ) async {
+    final token = _accessToken;
+    if (token == null) return sendRequest('');
+
+    final response = await sendRequest(token);
+    if (response.statusCode != 401 || !await _refreshAccessToken()) {
+      return response;
+    }
+
+    final refreshedToken = _accessToken;
+    if (refreshedToken == null) return response;
+    return sendRequest(refreshedToken);
+  }
+
+  Future<bool> _refreshAccessToken() async {
+    final activeRefresh = _refreshInFlight;
+    if (activeRefresh != null) return activeRefresh;
+
+    final refreshToken = _refreshToken;
+    if (refreshToken == null) return false;
+
+    final refreshRequest = _requestNewAccessToken(refreshToken);
+    _refreshInFlight = refreshRequest;
+    try {
+      return await refreshRequest;
+    } finally {
+      if (identical(_refreshInFlight, refreshRequest)) {
+        _refreshInFlight = null;
+      }
+    }
+  }
+
+  Future<bool> _requestNewAccessToken(String refreshToken) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/token/refresh/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refresh': refreshToken}),
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 &&
+          data is Map<String, dynamic> &&
+          data['access'] is String) {
+        _accessToken = data['access'];
+        if (data['refresh'] is String) _refreshToken = data['refresh'];
+        notifyListeners();
+        return true;
+      }
+
+      if (response.statusCode == 400 || response.statusCode == 401) {
+        _isLoggedIn = false;
+        _accessToken = null;
+        _refreshToken = null;
+        notifyListeners();
+      }
+    } catch (_) {
+      // Keep the current session when a temporary network error blocks refresh.
+    }
+    return false;
   }
 
   Future<String?> signup(String email, String password) async {
@@ -243,15 +424,28 @@ class AppState extends ChangeNotifier {
         _isLoggedIn = true;
         if (data['tokens'] != null) {
           _accessToken = data['tokens']['access'];
+          _refreshToken = data['tokens']['refresh'];
         }
         if (data['user'] != null) {
           final userData = data['user'];
-          _userName = userData['username'] ?? "Jenil Navapara";
-          _userLevel = userData['level'] ?? "Intermediate (B1)";
+          _userName = userData['username'] ?? "Learner";
+          _userLevel = userData['level'] ?? "A1";
           _streak = Streak(
-            days: userData['streak'] ?? 12,
-            xp: userData['xp'] ?? 450,
+            days: userData['streak'] ?? 0,
+            longestDays: userData['longest_streak'] ?? 0,
           );
+          _pointBalance = userData['point'] ?? 0;
+          final statsData = userData['stats'];
+          if (statsData != null) {
+            _stats = UserStats(
+              wordsLearned: statsData['wordsLearned'] ?? 0,
+              grammarLessonsCompleted:
+                  statsData['grammarLessonsCompleted'] ?? 0,
+              speakingSessionsCompleted:
+                  statsData['speakingSessionsCompleted'] ?? 0,
+              chatSessionsCompleted: statsData['chatSessionsCompleted'] ?? 0,
+            );
+          }
         }
         notifyListeners();
         return null; // Success
@@ -268,23 +462,62 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<LeaderboardSnapshot> fetchLeaderboard() async {
+    final response = await authenticatedRequest(
+      (token) => http
+          .get(
+            Uri.parse('$apiBaseUrl/leaderboard/'),
+            headers: {'Authorization': 'Bearer $token'},
+          )
+          .timeout(const Duration(seconds: 10)),
+    );
+    final data = jsonDecode(response.body);
+    if (response.statusCode != 200) {
+      throw Exception(
+        data is Map<String, dynamic>
+            ? data['error']?.toString() ?? 'Could not load the leaderboard.'
+            : 'Could not load the leaderboard.',
+      );
+    }
+    if (data is! Map<String, dynamic>) {
+      throw const FormatException(
+        'The server returned invalid leaderboard data.',
+      );
+    }
+    return LeaderboardSnapshot.fromJson(data);
+  }
 
   Future<void> fetchUserProfile() async {
     if (!_isLoggedIn) return;
     try {
-      final response = await http.get(
-        Uri.parse("http://127.0.0.1:8000/api/vocabulary/profile/"),
-        headers: _accessToken != null ? {"Authorization": "Bearer $_accessToken"} : {},
-      ).timeout(const Duration(seconds: 5));
+      final response = await authenticatedRequest(
+        (token) => http
+            .get(
+              Uri.parse("${ApiConfig.apiBaseUrl}/vocabulary/profile/"),
+              headers: {"Authorization": "Bearer $token"},
+            )
+            .timeout(const Duration(seconds: 5)),
+      );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         _streak.days = data["streak"] ?? _streak.days;
+        _streak.longestDays = data["longest_streak"] ?? _streak.longestDays;
         _vocabGoalCount = data["today_progress"] ?? _vocabGoalCount;
+        _pointBalance = data["point"] ?? _pointBalance;
         _stats.wordsLearned = data["words_learned"] ?? _stats.wordsLearned;
+        _stats.grammarLessonsCompleted =
+            data["grammar_lessons_completed"] ?? _stats.grammarLessonsCompleted;
+        _stats.speakingSessionsCompleted =
+            data["speaking_sessions"] ?? _stats.speakingSessionsCompleted;
+        _stats.chatSessionsCompleted =
+            data["chat_sessions"] ?? _stats.chatSessionsCompleted;
+        _grammarGoalCount = _stats.grammarLessonsCompleted > 0 ? 1 : 0;
+        _speakingGoalCount = _stats.speakingSessionsCompleted > 0 ? 1 : 0;
         if (data["username"] != null) {
           _userName = data["username"];
         }
+        if (data["level"] != null) _userLevel = data["level"];
         notifyListeners();
       }
     } catch (_) {
@@ -303,13 +536,48 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void learnVocabularyWord(String wordText) {
+  Future<int> submitPoints(int point, {String? activity}) async {
+    final response = await authenticatedRequest(
+      (token) => http
+          .post(
+            Uri.parse('$apiBaseUrl/score/'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+            body: jsonEncode({'point': point, 'activity': ?activity}),
+          )
+          .timeout(const Duration(seconds: 10)),
+    );
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        data is Map<String, dynamic>
+            ? data['error']?.toString() ?? 'Could not save points.'
+            : 'Could not save points.',
+      );
+    }
+
+    _pointBalance = data['point'] ?? (_pointBalance + point);
+    if (data['speaking_sessions'] != null) {
+      _stats.speakingSessionsCompleted = data['speaking_sessions'];
+      _speakingGoalCount = _stats.speakingSessionsCompleted > 0 ? 1 : 0;
+    }
+    if (data['chat_sessions'] != null) {
+      _stats.chatSessionsCompleted = data['chat_sessions'];
+    }
+    notifyListeners();
+    return _pointBalance;
+  }
+
+  Future<void> learnVocabularyWord(String wordText) async {
     final word = _vocabularyList.firstWhere((w) => w.word == wordText);
     if (!word.isLearned) {
       word.isLearned = true;
       _stats.wordsLearned += 1;
       _vocabGoalCount = (_vocabGoalCount + 1).clamp(0, 5);
-      addXp(15);
+      await submitPoints(15, activity: 'vocabulary');
     }
   }
 
@@ -317,82 +585,114 @@ class AppState extends ChangeNotifier {
     if (_accessToken == null) {
       throw Exception('Not authenticated');
     }
-    final progress = await _grammarProgressService.getGrammarProgress(_accessToken!);
-    _stats.grammarLessonsCompleted = progress['completed_topics'] ?? _stats.grammarLessonsCompleted;
-    _grammarGoalCount = ((progress['completed_topics'] ?? 0) > 0 ? 1 : 0).clamp(0, 1);
+    final progress = await _grammarProgressService.getGrammarProgress(
+      authenticatedRequest,
+    );
+    _stats.grammarLessonsCompleted =
+        progress['completed_topics'] ?? _stats.grammarLessonsCompleted;
+    _grammarGoalCount = ((progress['completed_topics'] ?? 0) > 0 ? 1 : 0).clamp(
+      0,
+      1,
+    );
     notifyListeners();
     return progress;
   }
 
-  Future<Map<String, dynamic>> completeGrammarTopic(String topicId, int correctAnswers) async {
+  Future<Map<String, dynamic>> completeGrammarTopic(
+    String topicId,
+    int correctAnswers,
+  ) async {
     if (_accessToken == null) {
       throw Exception('Not authenticated');
     }
 
-    final response = await _grammarProgressService.completeGrammarTopic(_accessToken!, topicId, correctAnswers);
-    final completedTopics = response['completed_topics'] ?? _stats.grammarLessonsCompleted;
+    final response = await _grammarProgressService.completeGrammarTopic(
+      authenticatedRequest,
+      topicId,
+      correctAnswers,
+    );
+    final completedTopics =
+        response['completed_topics'] ?? _stats.grammarLessonsCompleted;
     _stats.grammarLessonsCompleted = completedTopics;
     _grammarGoalCount = (completedTopics > 0 ? 1 : 0).clamp(0, 1);
     if ((response['points_awarded'] ?? 0) > 0) {
-      addXp(response['points_awarded'] as int);
+      _pointBalance = response['point'] ?? _pointBalance;
     }
     notifyListeners();
     return response;
   }
 
-  void completeGrammarQuiz() {
-    _stats.grammarLessonsCompleted += 1;
-    _grammarGoalCount = (_grammarGoalCount + 1).clamp(0, 1);
-    addXp(50);
+  Future<void> completeGrammarQuiz() async {
+    await submitPoints(50, activity: 'grammar');
   }
 
-  void completeSpeakingSession() {
-    _stats.speakingSessionsCompleted += 1;
-    _speakingGoalCount = (_speakingGoalCount + 1).clamp(0, 1);
-    addXp(40);
+  Future<void> completeSpeakingSession() async {
+    await submitPoints(40, activity: 'speaking');
   }
 
-  void sendChatMessage(String text) {
-    _chatHistory.add(Message(text: text, isUser: true, time: DateTime.now()));
-    _stats.chatSessionsCompleted += 1;
-    addXp(10);
-    notifyListeners();
-
-    // Simulate AI response
-    _simulateAiResponse(text);
-  }
-
-  void addXp(int amount) {
-    _streak.xp += amount;
-    if (_streak.xp >= _streak.targetXp) {
-      _streak.xp = _streak.xp - _streak.targetXp;
-      _streak.days += 1; // Level up / Streak extends!
-      _streak.targetXp = (_streak.targetXp * 1.1).round(); // Next level harder
-    }
-    notifyListeners();
-  }
-
-  void _simulateAiResponse(String userText) {
-    // Quick automated AI tutor replies
-    String aiReply = "That's very interesting! Could you elaborate more on that using other vocabulary words?";
-    
-    final lower = userText.toLowerCase();
-    if (lower.contains("hello") || lower.contains("hi")) {
-      aiReply = "Hello Jenil! Glad to chat with you. How can I help you practice your English today?";
-    } else if (lower.contains("weather")) {
-      aiReply = "I love discussing the weather. In English, we often say 'it's raining cats and dogs' for heavy rain. What's the climate like today where you are?";
-    } else if (lower.contains("help") || lower.contains("difficult")) {
-      aiReply = "Don't worry, learning English is a journey. Let's start with simple grammar: try writing a sentence in the present perfect tense!";
-    } else if (lower.contains("sport") || lower.contains("play") || lower.contains("game")) {
-      aiReply = "Sports are a great topic! Do you support any football or cricket team? Tell me in English!";
-    } else if (userText.length < 10) {
-      aiReply = "Nice answer. Try to write a longer response next time to practice sentence structure and connectives like 'because', 'although', or 'furthermore'!";
+  Future<String?> sendChatMessage(String text) async {
+    if (_accessToken == null) {
+      return 'Please log in to use AI chat.';
     }
 
-    Timer(const Duration(seconds: 1), () {
-      _chatHistory.add(Message(text: aiReply, isUser: false, time: DateTime.now()));
+    _resetChatHistoryIfNewDay();
+    final sentAt = DateTime.now();
+    _chatHistory.add(Message(text: text, isUser: true, time: sentAt));
+    notifyListeners();
+
+    final recentMessages = _chatHistory.skip(
+      (_chatHistory.length - 20).clamp(0, _chatHistory.length),
+    );
+    final messages = recentMessages
+        .map(
+          (message) => {
+            'role': message.isUser ? 'user' : 'assistant',
+            'content': message.text,
+          },
+        )
+        .toList();
+
+    try {
+      final response = await authenticatedRequest(
+        (token) => http
+            .post(
+              Uri.parse('${ApiConfig.apiBaseUrl}/chat/'),
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $token',
+              },
+              body: jsonEncode({'messages': messages}),
+            )
+            .timeout(const Duration(seconds: 35)),
+      );
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode != 200) {
+        return data is Map<String, dynamic>
+            ? data['error']?.toString() ?? 'AI chat could not respond.'
+            : 'AI chat could not respond.';
+      }
+
+      final receivedAt = DateTime.now();
+      if (sentAt.year != receivedAt.year ||
+          sentAt.month != receivedAt.month ||
+          sentAt.day != receivedAt.day) {
+        _resetChatHistoryIfNewDay();
+        notifyListeners();
+        return null;
+      }
+
+      _chatHistory.add(
+        Message(text: data['reply'], isUser: false, time: receivedAt),
+      );
+      _pointBalance = data['point'] ?? _pointBalance;
+      _stats.chatSessionsCompleted =
+          data['chat_sessions'] ?? _stats.chatSessionsCompleted;
       notifyListeners();
-    });
+      return null;
+    } catch (_) {
+      return 'Could not reach the AI service. Check your connection and try again.';
+    }
   }
 }
 
@@ -404,8 +704,8 @@ class AppStateProvider extends InheritedNotifier<AppState> {
   });
 
   static AppState of(BuildContext context) {
-    final AppStateProvider? result =
-        context.dependOnInheritedWidgetOfExactType<AppStateProvider>();
+    final AppStateProvider? result = context
+        .dependOnInheritedWidgetOfExactType<AppStateProvider>();
     assert(result != null, 'No AppStateProvider found in context');
     return result!.notifier!;
   }

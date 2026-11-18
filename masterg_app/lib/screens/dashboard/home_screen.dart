@@ -4,9 +4,13 @@ import '../../theme/theme.dart';
 import '../learn/vocabulary_levels_screen.dart';
 import '../../grammar/screens/grammar_topics_screen.dart';
 import '../learn/speaking_practice_screen.dart';
+import '../learn/rapid_fire_screen.dart';
+import '../learn/revision_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, required this.onOpenChat});
+
+  final VoidCallback onOpenChat;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -17,10 +21,15 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        AppStateProvider.of(context).fetchUserProfile();
-      }
+      if (mounted) AppStateProvider.of(context).fetchUserProfile();
     });
+  }
+
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
   }
 
   @override
@@ -31,38 +40,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Top Section: Greeting, Avatar, Notification
-              _buildHeader(context, appState, theme),
-              const SizedBox(height: 24),
-
-              // Streak Card
-              _buildStreakCard(context, appState, theme),
-              const SizedBox(height: 24),
-
-              // Section Title: Quick Stats
-              _buildSectionTitle(theme, "Your Stats Today"),
-              const SizedBox(height: 12),
-              _buildQuickStatsGrid(appState, theme, isDark),
-              const SizedBox(height: 28),
-
-              // Section Title: Learning Modules
-              _buildSectionTitle(theme, "Learning Modules"),
-              const SizedBox(height: 12),
-              _buildLearningModulesGrid(context, appState, theme, isDark),
-              const SizedBox(height: 28),
-
-              // Section Title: Daily Goals
-              _buildSectionTitle(theme, "Daily Goals"),
-              const SizedBox(height: 12),
-              _buildDailyGoalsCard(context, appState, theme, isDark),
-              const SizedBox(height: 30),
-            ],
-          ),
+        child: CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 30),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  _buildHeader(context, appState, theme),
+                  const SizedBox(height: 22),
+                  _buildHeroCard(context, appState, theme),
+                  const SizedBox(height: 26),
+                  _buildQuickStats(appState, theme, isDark),
+                  const SizedBox(height: 28),
+                  _buildSectionTitle(theme, "Learning Modules"),
+                  const SizedBox(height: 14),
+                  _buildLearningModules(context, appState, theme, isDark),
+                  const SizedBox(height: 28),
+                  _buildSectionTitle(theme, "Daily Goals"),
+                  const SizedBox(height: 14),
+                  _buildDailyGoals(context, appState, theme, isDark),
+                ]),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -70,95 +70,83 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildHeader(BuildContext context, AppState appState, ThemeData theme) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            GestureDetector(
-              onTap: () {
-                // Quick feedback
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Hello ${appState.userName}! Keep up the learning!"),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              },
-              child: Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: theme.colorScheme.primary, width: 2),
-                  gradient: AppTheme.primaryGradient,
-                ),
-                child: Center(
-                  child: Text(
-                    appState.userName.split(" ").where((s) => s.isNotEmpty).map((s) => s[0].toUpperCase()).take(2).join(""),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Good Morning,",
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  "${appState.userName} 👋",
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
         Container(
+          width: 50, height: 50,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: theme.colorScheme.surface,
-            border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+            gradient: AppTheme.primaryGradient,
+            border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3), width: 2),
           ),
-          child: IconButton(
-            icon: Icon(Icons.notifications_outlined, color: theme.colorScheme.onBackground),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("No new notifications today. Keep practicing!"),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
+          child: Center(
+            child: Text(
+              _initials(appState.userName),
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 17),
+            ),
           ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _getGreeting(),
+                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
+              ),
+              Text(
+                appState.userName,
+                style: theme.textTheme.titleLarge?.copyWith(fontSize: 20),
+              ),
+            ],
+          ),
+        ),
+        _buildIconButton(
+          context, theme,
+          icon: Icons.notifications_none_rounded,
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text("No new notifications"),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            );
+          },
         ),
       ],
     );
   }
 
-  Widget _buildStreakCard(BuildContext context, AppState appState, ThemeData theme) {
+  Widget _buildIconButton(BuildContext context, ThemeData theme, {required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 44, height: 44,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        ),
+        child: Icon(icon, color: theme.colorScheme.onSurface.withValues(alpha: 0.7), size: 22),
+      ),
+    );
+  }
+
+  Widget _buildHeroCard(BuildContext context, AppState appState, ThemeData theme) {
     final streak = appState.streak;
+    final progress = (appState.pointBalance % 500) / 500.0;
+
     return Container(
-      padding: const EdgeInsets.all(24.0),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         gradient: AppTheme.primaryGradient,
-        borderRadius: AppTheme.cardBorderRadius,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.25),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
@@ -168,370 +156,291 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.18),
-                      borderRadius: BorderRadius.circular(20),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFFD166), size: 18),
+                    const SizedBox(width: 5),
+                    Text(
+                      "${streak.days} Day Streak",
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.local_fire_department_rounded, color: Colors.orangeAccent, size: 20),
-                        const SizedBox(width: 4),
-                        Text(
-                          "${streak.days} Days Streak",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              Text(
-                "${streak.xp}/${streak.targetXp} XP",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 16,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.bolt_rounded, color: Color(0xFFFFD166), size: 18),
+                    const SizedBox(width: 4),
+                    Text(
+                      "${appState.pointBalance} pts",
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 20),
           const Text(
-            "You are doing amazing!",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              fontSize: 22,
-              letterSpacing: -0.2,
-            ),
+            "Keep up the momentum!",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 22, letterSpacing: -0.3),
           ),
           const SizedBox(height: 6),
           Text(
-            "Complete speaking and grammar modules today to hit your daily goal.",
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.85),
-              fontSize: 14,
-              height: 1.4,
-            ),
+            "Complete activities to earn points and build your streak.",
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 14, height: 1.4),
           ),
-          const SizedBox(height: 20),
-          // Progress Bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: SizedBox(
-              height: 10,
-              child: LinearProgressIndicator(
-                value: streak.progress,
-                backgroundColor: Colors.white.withOpacity(0.2),
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: SizedBox(
+                    height: 8,
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      backgroundColor: Colors.white.withValues(alpha: 0.2),
+                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                ),
               ),
-            ),
+              const SizedBox(width: 12),
+              Text(
+                "${500 - (appState.pointBalance % 500)} to go",
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 11, fontWeight: FontWeight.w600),
+              ),
+            ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickStats(AppState appState, ThemeData theme, bool isDark) {
+    final stats = appState.stats;
+    return Row(
+      children: [
+        Expanded(child: _buildMiniStat(theme, isDark, Icons.translate_rounded, "${stats.wordsLearned}", "Words", const Color(0xFF6366F1))),
+        const SizedBox(width: 10),
+        Expanded(child: _buildMiniStat(theme, isDark, Icons.menu_book_rounded, "${stats.grammarLessonsCompleted}", "Grammar", const Color(0xFF8B5CF6))),
+        const SizedBox(width: 10),
+        Expanded(child: _buildMiniStat(theme, isDark, Icons.mic_rounded, "${stats.speakingSessionsCompleted}", "Speaking", const Color(0xFFEC4899))),
+        const SizedBox(width: 10),
+        Expanded(child: _buildMiniStat(theme, isDark, Icons.forum_rounded, "${stats.chatSessionsCompleted}", "Chat", const Color(0xFF10B981))),
+      ],
+    );
+  }
+
+  Widget _buildMiniStat(ThemeData theme, bool isDark, IconData icon, String value, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(height: 8),
+          Text(value, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800, fontSize: 18)),
+          const SizedBox(height: 2),
+          Text(label, style: theme.textTheme.bodySmall?.copyWith(fontSize: 11)),
         ],
       ),
     );
   }
 
   Widget _buildSectionTitle(ThemeData theme, String title) {
-    return Text(
-      title,
-      style: theme.textTheme.titleLarge?.copyWith(
-        fontWeight: FontWeight.bold,
-        fontSize: 18,
-      ),
-    );
+    return Text(title, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, fontSize: 18));
   }
 
-  Widget _buildQuickStatsGrid(AppState appState, ThemeData theme, bool isDark) {
-    final stats = appState.stats;
-    return GridView.count(
-      crossAxisCount: 2,
+  Widget _buildLearningModules(BuildContext context, AppState appState, ThemeData theme, bool isDark) {
+    final modules = [
+      _ModuleData("Vocabulary", "Learn new words daily", Icons.abc_rounded, const Color(0xFF6366F1),
+        (appState.vocabGoalCount / 5.0).clamp(0.0, 1.0),
+        () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VocabularyLevelsScreen()))),
+      _ModuleData("Grammar", "Lessons & quizzes", Icons.rule_folder_rounded, const Color(0xFF8B5CF6),
+        (appState.grammarGoalCount / 1.0).clamp(0.0, 1.0),
+        () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GrammarTopicsScreen()))),
+      _ModuleData("Rapid Fire", "Spelling challenge", Icons.bolt_rounded, const Color(0xFF14B8A6),
+        (appState.pointBalance / 500.0).clamp(0.0, 1.0),
+        () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RapidFireScreen()))),
+      _ModuleData("Speaking", "AI conversation", Icons.mic_external_on_rounded, const Color(0xFFF97316),
+        (appState.speakingGoalCount / 1.0).clamp(0.0, 1.0),
+        () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SpeakingPracticeScreen()))),
+      _ModuleData("AI Chat", "Practice English", Icons.chat_bubble_rounded, const Color(0xFF10B981),
+        (appState.stats.chatSessionsCompleted / 20.0).clamp(0.0, 1.0),
+        widget.onOpenChat),
+      _ModuleData("Revision", "Review vocabulary", Icons.replay_circle_filled_rounded, const Color(0xFFF59E0B),
+        0.0,
+        () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RevisionScreen()))),
+    ];
+
+    return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.7,
-      children: [
-        _buildStatCard(theme, isDark, "Words Learned", "${stats.wordsLearned}", Icons.translate_rounded, const Color(0xFF3B82F6)),
-        _buildStatCard(theme, isDark, "Grammar Lessons", "${stats.grammarLessonsCompleted}", Icons.menu_book_rounded, const Color(0xFF8B5CF6)),
-        _buildStatCard(theme, isDark, "Speaking Sessions", "${stats.speakingSessionsCompleted}", Icons.mic_rounded, const Color(0xFFEC4899)),
-        _buildStatCard(theme, isDark, "Chat Sessions", "${stats.chatSessionsCompleted}", Icons.forum_rounded, const Color(0xFF10B981)),
-      ],
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 1.15,
+      ),
+      itemCount: modules.length,
+      itemBuilder: (context, index) => _buildModuleCard(theme, isDark, modules[index]),
     );
   }
 
-  Widget _buildStatCard(ThemeData theme, bool isDark, String label, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.4)),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? Colors.black.withOpacity(0.1) : Colors.black.withOpacity(0.015),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: color, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+  Widget _buildModuleCard(ThemeData theme, bool isDark, _ModuleData module) {
+    return GestureDetector(
+      onTap: module.onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4)),
+          boxShadow: [
+            BoxShadow(
+              color: isDark ? Colors.black.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: 42, height: 42,
+                  decoration: BoxDecoration(
+                    color: module.color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(module.icon, color: module.color, size: 22),
+                ),
+                Icon(Icons.arrow_forward_ios_rounded, color: theme.colorScheme.outline.withValues(alpha: 0.5), size: 14),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(module.title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 15)),
+                const SizedBox(height: 2),
+                Text(module.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.bodySmall?.copyWith(fontSize: 11)),
+              ],
+            ),
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Progress", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface.withValues(alpha: 0.4))),
+                    Text("${(module.progress * 100).round()}%", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: module.color)),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: SizedBox(
+                    height: 4,
+                    child: LinearProgressIndicator(
+                      value: module.progress,
+                      backgroundColor: module.color.withValues(alpha: 0.1),
+                      valueColor: AlwaysStoppedAnimation<Color>(module.color),
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLearningModulesGrid(BuildContext context, AppState appState, ThemeData theme, bool isDark) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 14,
-      mainAxisSpacing: 14,
-      childAspectRatio: 1.1,
-      children: [
-        _buildModuleCard(
-          context, theme, isDark,
-          "Vocabulary", "Learn 5 new words daily",
-          Icons.abc_rounded, Colors.blue, (appState.vocabGoalCount / 5.0).clamp(0.0, 1.0),
-          () => Navigator.push(context, MaterialPageRoute(builder: (context) => const VocabularyLevelsScreen())),
-        ),
-        _buildModuleCard(
-          context, theme, isDark,
-          "Grammar", "Grammar lessons and quizzes",
-          Icons.rule_folder_rounded, Colors.purple, (appState.grammarGoalCount / 1.0).clamp(0.0, 1.0),
-          () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GrammarTopicsScreen())),
-        ),
-        _buildModuleCard(
-          context, theme, isDark,
-          "Listening", "Listening exercises and audio",
-          Icons.headset_rounded, Colors.pink, 0.0,
-          () => _showComingSoonSnackBar(context, "Listening"),
-        ),
-        _buildModuleCard(
-          context, theme, isDark,
-          "Speaking", "AI speaking practice",
-          Icons.mic_external_on_rounded, Colors.orange, (appState.speakingGoalCount / 1.0).clamp(0.0, 1.0),
-          () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SpeakingPracticeScreen())),
-        ),
-        _buildModuleCard(
-          context, theme, isDark,
-          "AI Chat", "Practice English conversations",
-          Icons.chat_bubble_rounded, Colors.teal, (appState.stats.chatSessionsCompleted / 20.0).clamp(0.0, 1.0),
-          () => ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Tap the 'Chat' tab at the bottom to talk to G-Bot!"),
-              behavior: SnackBarBehavior.floating,
-            ),
-          ),
-        ),
-        _buildModuleCard(
-          context, theme, isDark,
-          "Revision", "Review learned vocabulary",
-          Icons.replay_circle_filled_rounded, Colors.amber, 0.0,
-          () => _showComingSoonSnackBar(context, "Revision"),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildModuleCard(
-    BuildContext context,
-    ThemeData theme,
-    bool isDark,
-    String title,
-    String description,
-    IconData icon,
-    Color color,
-    double progress,
-    VoidCallback onTap,
-  ) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppTheme.cardBorderRadius,
-        side: BorderSide(color: theme.colorScheme.outlineVariant.withOpacity(0.5), width: 1),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(icon, color: color, size: 24),
-                  ),
-                  Icon(Icons.arrow_forward_ios_rounded, color: theme.colorScheme.outline, size: 14),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Progress Bar
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        "Progress",
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
-                      ),
-                      Text(
-                        "${(progress * 100).round()}%",
-                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: color),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: SizedBox(
-                      height: 4,
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        backgroundColor: color.withOpacity(0.1),
-                        valueColor: AlwaysStoppedAnimation<Color>(color),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildDailyGoalsCard(BuildContext context, AppState appState, ThemeData theme, bool isDark) {
-    final completePercent = appState.dailyGoalCompletion;
+  Widget _buildDailyGoals(BuildContext context, AppState appState, ThemeData theme, bool isDark) {
+    final percent = appState.dailyGoalCompletion;
 
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: AppTheme.cardBorderRadius,
-        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4)),
         boxShadow: AppTheme.getSoftShadow(context),
       ),
       child: Row(
         children: [
-          // Left Side: Goal items
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildGoalRow(theme, "Vocabulary", "${appState.vocabGoalCount}/5 words", appState.vocabGoalCount >= 5, Colors.blue),
-                const SizedBox(height: 12),
-                _buildGoalRow(theme, "Grammar Quizzes", "${appState.grammarGoalCount}/1 lesson", appState.grammarGoalCount >= 1, Colors.purple),
-                const SizedBox(height: 12),
-                _buildGoalRow(theme, "Speaking practice", "${appState.speakingGoalCount}/1 session", appState.speakingGoalCount >= 1, Colors.orange),
+                _buildGoalItem(theme, "Vocabulary", "${appState.vocabGoalCount}/5 words", appState.vocabGoalCount >= 5, const Color(0xFF6366F1)),
+                const SizedBox(height: 14),
+                _buildGoalItem(theme, "Grammar", "${appState.grammarGoalCount}/1 lesson", appState.grammarGoalCount >= 1, const Color(0xFF8B5CF6)),
+                const SizedBox(height: 14),
+                _buildGoalItem(theme, "Speaking", "${appState.speakingGoalCount}/1 session", appState.speakingGoalCount >= 1, const Color(0xFFF97316)),
               ],
             ),
           ),
           const SizedBox(width: 16),
-          // Right Side: Goal indicator chart
           Column(
             children: [
               SizedBox(
-                width: 76,
-                height: 76,
+                width: 72, height: 72,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
                     CircularProgressIndicator(
-                      value: completePercent / 100,
-                      strokeWidth: 8,
-                      backgroundColor: theme.colorScheme.outlineVariant.withOpacity(0.3),
-                      valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+                      value: percent / 100,
+                      strokeWidth: 7,
+                      strokeCap: StrokeCap.round,
+                      backgroundColor: theme.colorScheme.outlineVariant.withValues(alpha: 0.25),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        percent >= 100 ? const Color(0xFF10B981) : theme.colorScheme.primary,
+                      ),
                     ),
                     Center(
                       child: Text(
-                        "${completePercent.round()}%",
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        "${percent.round()}%",
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800, fontSize: 15),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
-                "Completed",
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                ),
+                percent >= 100 ? "Complete!" : "Today",
+                style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, fontSize: 11),
               ),
             ],
           ),
@@ -540,39 +449,25 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildGoalRow(ThemeData theme, String title, String value, bool isComplete, Color color) {
+  Widget _buildGoalItem(ThemeData theme, String title, String value, bool done, Color color) {
     return Row(
       children: [
         Container(
-          width: 20,
-          height: 20,
+          width: 22, height: 22,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isComplete ? color : Colors.transparent,
-            border: Border.all(color: isComplete ? Colors.transparent : const Color(0xFF94A3B8), width: 1.5),
+            color: done ? color : Colors.transparent,
+            border: Border.all(color: done ? Colors.transparent : theme.colorScheme.outline.withValues(alpha: 0.3), width: 1.5),
           ),
-          child: isComplete
-              ? const Icon(Icons.check, color: Colors.white, size: 12)
-              : null,
+          child: done ? const Icon(Icons.check_rounded, color: Colors.white, size: 13) : null,
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Text(
-                value,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontSize: 11,
-                ),
-              ),
+              Text(title, style: theme.textTheme.titleMedium?.copyWith(fontSize: 13, fontWeight: FontWeight.w700)),
+              Text(value, style: theme.textTheme.bodySmall?.copyWith(fontSize: 11)),
             ],
           ),
         ),
@@ -580,12 +475,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _showComingSoonSnackBar(BuildContext context, String moduleName) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("$moduleName exercises will be fully integrated in the next learning version. Currently simulating."),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+
+  String _initials(String name) {
+    return name.split(" ").where((s) => s.isNotEmpty).map((s) => s[0].toUpperCase()).take(2).join();
   }
+}
+
+class _ModuleData {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final double progress;
+  final VoidCallback onTap;
+
+  const _ModuleData(this.title, this.subtitle, this.icon, this.color, this.progress, this.onTap);
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../dashboard/home_screen.dart';
-import '../learn/learn_hub_screen.dart';
 import '../chat/ai_chat_screen.dart';
+import '../profile/leaderboard_screen.dart';
 import '../profile/progress_screen.dart';
 import '../profile/profile_screen.dart';
 
@@ -12,7 +12,7 @@ class MainNavigationShell extends StatefulWidget {
   State<MainNavigationShell> createState() => _MainNavigationShellState();
 }
 
-class _MainNavigationShellState extends State<MainNavigationShell> with SingleTickerProviderStateMixin {
+class _MainNavigationShellState extends State<MainNavigationShell> {
   int _currentIndex = 0;
   late List<Widget> _screens;
 
@@ -20,8 +20,8 @@ class _MainNavigationShellState extends State<MainNavigationShell> with SingleTi
   void initState() {
     super.initState();
     _screens = [
-      const HomeScreen(),
-      const LearnHubScreen(),
+      HomeScreen(onOpenChat: () => _onTabTapped(2)),
+      const LeaderboardScreen(),
       const AIChatScreen(),
       const ProgressScreen(),
       const ProfileScreen(),
@@ -29,9 +29,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> with SingleTi
   }
 
   void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+    setState(() => _currentIndex = index);
   }
 
   @override
@@ -41,19 +39,13 @@ class _MainNavigationShellState extends State<MainNavigationShell> with SingleTi
 
     return Scaffold(
       body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        switchInCurve: Curves.easeInOut,
-        switchOutCurve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 250),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
         transitionBuilder: (child, animation) {
           return FadeTransition(
             opacity: animation,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0.0, 0.05),
-                end: Offset.zero,
-              ).animate(animation),
-              child: child,
-            ),
+            child: child,
           );
         },
         child: KeyedSubtree(
@@ -65,12 +57,14 @@ class _MainNavigationShellState extends State<MainNavigationShell> with SingleTi
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(28),
-            topRight: Radius.circular(28),
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
           ),
           boxShadow: [
             BoxShadow(
-              color: isDark ? Colors.black.withValues(alpha: 0.4) : Colors.blue.withValues(alpha: 0.06),
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.3)
+                  : const Color(0xFF6366F1).withValues(alpha: 0.06),
               blurRadius: 20,
               offset: const Offset(0, -4),
             ),
@@ -78,37 +72,31 @@ class _MainNavigationShellState extends State<MainNavigationShell> with SingleTi
         ),
         child: ClipRRect(
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(28),
-            topRight: Radius.circular(28),
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
           ),
           child: NavigationBarTheme(
             data: NavigationBarThemeData(
-              indicatorColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+              indicatorColor: theme.colorScheme.primary.withValues(alpha: 0.1),
               labelTextStyle: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
                   return TextStyle(
                     color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
                   );
                 }
-                return const TextStyle(
-                  color: Color(0xFF64748B),
+                return TextStyle(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
                   fontWeight: FontWeight.w500,
-                  fontSize: 12,
+                  fontSize: 11,
                 );
               }),
               iconTheme: WidgetStateProperty.resolveWith((states) {
                 if (states.contains(WidgetState.selected)) {
-                  return IconThemeData(
-                    color: theme.colorScheme.primary,
-                    size: 26,
-                  );
+                  return IconThemeData(color: theme.colorScheme.primary, size: 24);
                 }
-                return const IconThemeData(
-                  color: Color(0xFF64748B),
-                  size: 24,
-                );
+                return IconThemeData(color: theme.colorScheme.onSurface.withValues(alpha: 0.4), size: 22);
               }),
             ),
             child: NavigationBar(
@@ -116,7 +104,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> with SingleTi
               onDestinationSelected: _onTabTapped,
               backgroundColor: Colors.transparent,
               elevation: 0,
-              height: 72,
+              height: 68,
               destinations: const [
                 NavigationDestination(
                   icon: Icon(Icons.home_outlined),
@@ -124,9 +112,9 @@ class _MainNavigationShellState extends State<MainNavigationShell> with SingleTi
                   label: 'Home',
                 ),
                 NavigationDestination(
-                  icon: Icon(Icons.school_outlined),
-                  selectedIcon: Icon(Icons.school_rounded),
-                  label: 'Learn',
+                  icon: Icon(Icons.leaderboard_outlined),
+                  selectedIcon: Icon(Icons.leaderboard_rounded),
+                  label: 'Ranks',
                 ),
                 NavigationDestination(
                   icon: Icon(Icons.chat_bubble_outline_rounded),

@@ -130,8 +130,8 @@ class ProfileScreen extends StatelessWidget {
       children: [
         _buildMilestoneCard(theme, isDark, "Words Learned", "${stats.wordsLearned}", Icons.translate_rounded, Colors.blue),
         _buildMilestoneCard(theme, isDark, "Current Streak", "${appState.streak.days} Days", Icons.local_fire_department_rounded, Colors.orange),
-        _buildMilestoneCard(theme, isDark, "Longest Streak", "${appState.streak.days > 24 ? appState.streak.days : 24} Days", Icons.bolt_rounded, Colors.pink),
-        _buildMilestoneCard(theme, isDark, "Total XP Earned", "${450 + appState.streak.xp} XP", Icons.stars_rounded, Colors.amber),
+        _buildMilestoneCard(theme, isDark, "Longest Streak", "${appState.streak.longestDays} Days", Icons.bolt_rounded, Colors.pink),
+        _buildMilestoneCard(theme, isDark, "Total Points", "${appState.pointBalance}", Icons.stars_rounded, Colors.amber),
       ],
     );
   }
@@ -142,7 +142,7 @@ class ProfileScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha:0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,7 +203,7 @@ class ProfileScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+                border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha:0.5)),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -213,7 +213,7 @@ class ProfileScreen extends StatelessWidget {
                     height: 44,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: b["color"].withOpacity(0.12),
+                      color: b["color"].withValues(alpha:0.12),
                     ),
                     child: Icon(b["icon"], color: b["color"], size: 24),
                   ),
@@ -246,7 +246,7 @@ class ProfileScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: AppTheme.cardBorderRadius,
-        border: Border.all(color: theme.colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha:0.5)),
       ),
       child: Column(
         children: [
